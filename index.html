@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Weather Forecasting</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  font-family:"Tagesschrift", system-ui;
+}
+body{
+  background-image: linear-gradient(to right, #fc5c7d, #6a82fb);
+  background-size:cover;
+  background-repeat:no-repeat;
+}
+.card-style{
+  background:rgba(255,255,255,0.2);
+  backdrop-filter:blur(10px);
+  border-radius:15px;
+  padding:20px;
+  color:white;
+  box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+.footer-transparent{
+  background-color:rgba(255,255,255,0.2);
+  backdrop-filter:blur(10px);
+  color:white;
+}
+a{
+  color:inherit;
+  text-decoration:none;
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+</head>
+<body>
+
+<section class="home">
+  <h1 class="text-white text-center mt-4">WEATHER FORECASTING</h1>
+  <div class="w-75 mx-auto py-5 d-flex justify-content-center">
+    <input id="inputfield" type="text" class="form-control py-3 px-4 rounded-pill" placeholder="Enter your location" />
+  </div>
+</section>
+
+<section class="sec2">
+  <div class="container py-5">
+    <div id="rowBody" class="row text-white text-center"></div>
+  </div>
+
+  <footer class="text-center footer-transparent">
+    <div class="container pt-4">
+      <section class="mb-4">
+        <a class="btn btn-link btn-floating btn-lg text-white m-1"><i class="fab fa-facebook"></i></a>
+        <a class="btn btn-link btn-floating btn-lg text-white m-1"><i class="fab fa-twitter"></i></a>
+        <a class="btn btn-link btn-floating btn-lg text-white m-1"><i class="fab fa-google"></i></a>
+        <a class="btn btn-link btn-floating btn-lg text-white m-1"><i class="fab fa-instagram"></i></a>
+        <a class="btn btn-link btn-floating btn-lg text-white m-1"><i class="fab fa-linkedin"></i></a>
+        <a class="btn btn-link btn-floating btn-lg text-white m-1"><i class="fab fa-github"></i></a>
+      </section>
+    </div>
+
+    <div class="text-center p-3" style="background:rgba(0,0,0,0.05);">
+      © 2025 Copyright:
+      <a href="https://github.com/engmariamahmed04">Mariam A Hassan</a>
+    </div>
+  </footer>
+</section>
+
+<script>
+let input = document.getElementById("inputfield");
+input.addEventListener("keydown", async function (e) {
+  if (e.key === "Enter") {
+    let city = input.value.trim();
+    if(city !== ""){
+      getWeather(city);
+      input.value = "";
+    }
+  }
+});
+
+async function getWeather(city = "Alexandria"){
+  try{
+    let data = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=256996fc97104a3385e95434251509&q=${city}&days=3&aqi=yes&alerts=yes`);
+    let response = await data.json();
+
+    if(response.error){
+      document.getElementById("rowBody").innerHTML = `<div class='alert alert-danger'>City not found!</div>`;
+      return;
+    }
+
+    let today = response.forecast.forecastday[0];
+    let tomorrow = response.forecast.forecastday[1];
+    let dayAfter = response.forecast.forecastday[2];
+
+    display([today, tomorrow, dayAfter], response.location.name);
+
+  }catch(err){
+    console.log("API Error: ", err);
+  }
+}
+
+function display(days, cityName){
+  let box = "";
+  let labels = ["Today", "Tomorrow", "Day After"];
+
+  days.forEach((day, i) =>{
+    let date = new Date(day.date);
+    let dayName = date.toLocaleDateString("en-US", { weekday:"long" });
+
+    box += `
+      <div class="col-md-4 mb-4">
+        <div class="p-4 card-style h-100">
+          <div class="d-flex justify-content-between">
+            <p>${labels[i]} (${dayName})</p>
+            <p>${day.date}</p>
+          </div>
+          <h5>${cityName}</h5>
+          <h1>${day.day.avgtemp_c}°C</h1>
+          <img src="https:${day.day.condition.icon}" class="my-3" />
+          <p>${day.day.condition.text}</p>
+          <div class="d-flex justify-content-between text-white-50">
+            <span><i class="fa-solid fa-umbrella"></i> ${day.day.daily_chance_of_rain}%</span>
+            <span><i class="fa-solid fa-wind"></i> ${day.day.maxwind_kph} km/h</span>
+            <span><i class="fa-solid fa-compass"></i> ${day.hour[12].wind_dir}</span>
+            <span><i class="fa-regular fa-compass"></i> ${day.hour[12].wind_degree}</span>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById("rowBody").innerHTML = box;
+}
+
+gеtWeather("Alexandria");
+</script>
+
+</body>
+</html>
